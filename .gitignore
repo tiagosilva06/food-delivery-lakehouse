@@ -1,0 +1,24 @@
+# Materiais locais de apresentação e compartilhamento
+/docs/
+/PROJECT_BLUEPRINT.md
+
+# Configurações e segredos locais
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+
+# Ferramentas e sistema operacional
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+
