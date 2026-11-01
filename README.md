@@ -51,7 +51,7 @@ Cada componente local reproduzirá uma responsabilidade que poderia ser assumida
 
 ## Roadmap
 
-- [ ] Criar a estrutura inicial do repositório e os padrões de desenvolvimento
+- [x] Criar a estrutura inicial do repositório e os padrões de desenvolvimento
 - [ ] Definir os contratos CloudEvents e JSON Schema
 - [ ] Construir o simulador determinístico dos domínios
 - [ ] Configurar Kafka e Apicurio Registry
