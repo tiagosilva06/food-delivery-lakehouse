@@ -1,0 +1,21 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2c-3100-7000-8000-000000000001",
+  "source": "/simulator/orders",
+  "type": "com.fooddelivery.order.cancelled.v1",
+  "subject": "orders/order-000002",
+  "time": "2026-10-28T15:06:05.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/order/v1/order-cancelled.schema.json",
+  "orderid": "order-000002",
+  "correlationid": "order-000002",
+  "causationid": "019a3b2c-3000-7000-8000-000000000001",
+  "aggregatetype": "order",
+  "aggregateid": "order-000002",
+  "aggregateversion": 3,
+  "publishedat": "2026-10-28T15:06:05.456Z",
+  "data": {
+    "requested_by": "CUSTOMER",
+    "reason_code": "CUSTOMER_CHANGED_MIND"
+  }
+}

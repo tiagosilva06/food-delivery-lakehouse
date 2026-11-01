@@ -1,0 +1,21 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2c-4000-7000-8000-000000000001",
+  "source": "/simulator/orders",
+  "type": "com.fooddelivery.order.failed.v1",
+  "subject": "orders/order-000003",
+  "time": "2026-10-28T15:30:00.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/order/v1/order-failed.schema.json",
+  "orderid": "order-000003",
+  "correlationid": "order-000003",
+  "causationid": "019a3b2c-3900-7000-8000-000000000001",
+  "aggregatetype": "order",
+  "aggregateid": "order-000003",
+  "aggregateversion": 3,
+  "publishedat": "2026-10-28T15:30:00.456Z",
+  "data": {
+    "failure_stage": "DELIVERY",
+    "failure_code": "DELIVERY_FAILED_AFTER_PICKUP"
+  }
+}

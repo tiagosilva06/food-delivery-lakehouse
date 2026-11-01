@@ -1,44 +1,25 @@
 """Contract tests for the OrderCreated event."""
 
-import json
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import pytest
-from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
-from referencing import Registry, Resource
+
+from tests.contract.schema_helpers import build_validator, load_json
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-COMMON_SCHEMA_PATH = REPOSITORY_ROOT / "schemas/common/v1/cloud-event.schema.json"
 ORDER_CREATED_SCHEMA_PATH = REPOSITORY_ROOT / "schemas/order/v1/order-created.schema.json"
 VALID_EVENT_PATH = REPOSITORY_ROOT / "schemas/examples/order/v1/order-created.valid.json"
 INVALID_EVENT_PATH = REPOSITORY_ROOT / "schemas/examples/order/v1/order-created.invalid.json"
 
 
-def load_json(path: Path) -> dict[str, Any]:
-    """Load a JSON object from the repository."""
-    return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
-
-
-def build_validator() -> Draft202012Validator:
-    """Build a validator with the shared CloudEvent schema registered."""
-    common_schema = load_json(COMMON_SCHEMA_PATH)
-    order_created_schema = load_json(ORDER_CREATED_SCHEMA_PATH)
-    registry = Registry().with_resource(common_schema["$id"], Resource.from_contents(common_schema))
-    Draft202012Validator.check_schema(order_created_schema)
-    return Draft202012Validator(
-        order_created_schema,
-        registry=registry,
-        format_checker=FormatChecker(),
-    )
-
-
 @pytest.fixture
 def validator() -> Draft202012Validator:
     """Provide the OrderCreated contract validator."""
-    return build_validator()
+    return build_validator(ORDER_CREATED_SCHEMA_PATH)
 
 
 @pytest.fixture

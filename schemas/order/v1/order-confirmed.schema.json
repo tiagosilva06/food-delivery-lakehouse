@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/order/v1/order-confirmed.schema.json",
+  "title": "OrderConfirmed",
+  "description": "Contract for the event emitted when an order is confirmed.",
+  "allOf": [
+    {
+      "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/orders" },
+        "type": { "const": "com.fooddelivery.order.confirmed.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^orders/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/order/v1/order-confirmed.schema.json"
+        },
+        "aggregatetype": { "const": "order" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/orderConfirmedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "orderConfirmedData": {
+      "type": "object",
+      "required": ["payment_attempt_id", "fulfillment_id"],
+      "properties": {
+        "payment_attempt_id": { "$ref": "#/$defs/identifier" },
+        "fulfillment_id": { "$ref": "#/$defs/identifier" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

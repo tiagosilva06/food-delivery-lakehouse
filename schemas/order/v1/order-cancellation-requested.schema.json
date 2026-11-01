@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/order/v1/order-cancellation-requested.schema.json",
+  "title": "OrderCancellationRequested",
+  "description": "Contract for the event emitted when cancellation of an order is requested.",
+  "allOf": [
+    {
+      "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/orders" },
+        "type": { "const": "com.fooddelivery.order.cancellation-requested.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^orders/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/order/v1/order-cancellation-requested.schema.json"
+        },
+        "aggregatetype": { "const": "order" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/orderCancellationRequestedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "reasonCode": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "maxLength": 64
+    },
+    "orderCancellationRequestedData": {
+      "type": "object",
+      "required": ["requested_by", "reason_code"],
+      "properties": {
+        "requested_by": {
+          "enum": ["CUSTOMER", "RESTAURANT", "SYSTEM"]
+        },
+        "reason_code": { "$ref": "#/$defs/reasonCode" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

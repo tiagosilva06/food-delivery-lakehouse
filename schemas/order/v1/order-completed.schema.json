@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/order/v1/order-completed.schema.json",
+  "title": "OrderCompleted",
+  "description": "Contract for the event emitted when an order reaches the completed state.",
+  "allOf": [
+    {
+      "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/orders" },
+        "type": { "const": "com.fooddelivery.order.completed.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^orders/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/order/v1/order-completed.schema.json"
+        },
+        "aggregatetype": { "const": "order" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/orderCompletedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "orderCompletedData": {
+      "type": "object",
+      "required": ["delivery_id"],
+      "properties": {
+        "delivery_id": { "$ref": "#/$defs/identifier" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
