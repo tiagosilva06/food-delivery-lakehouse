@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json",
+  "title": "Food Delivery CloudEvent",
+  "description": "Common CloudEvents 1.0 envelope for all food delivery domain events.",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "subject",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "orderid",
+    "correlationid",
+    "causationid",
+    "aggregatetype",
+    "aggregateid",
+    "aggregateversion",
+    "publishedat",
+    "data"
+  ],
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "source": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "orderid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "correlationid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "causationid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "aggregatetype": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "aggregateid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "aggregateversion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "publishedat": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object"
+    }
+  }
+}

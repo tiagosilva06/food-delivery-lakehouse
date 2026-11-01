@@ -1,0 +1,40 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2c-1000-7000-8000-000000000001",
+  "source": "/simulator/orders",
+  "type": "com.fooddelivery.order.created.v1",
+  "subject": "orders/order-000001",
+  "time": "2026-10-28T15:04:05.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/order/v1/order-created.schema.json",
+  "orderid": "order-000001",
+  "correlationid": "order-000001",
+  "causationid": "command-000001",
+  "aggregatetype": "order",
+  "aggregateid": "order-000001",
+  "aggregateversion": 1,
+  "publishedat": "2026-10-28T15:04:05.456Z",
+  "data": {
+    "customer_id": "customer-000123",
+    "restaurant_id": "restaurant-000456",
+    "delivery_location": {
+      "delivery_zone_id": "zone-01",
+      "latitude": -23.5505,
+      "longitude": -46.6333
+    },
+    "items": [
+      {
+        "order_item_id": "order-item-000001",
+        "menu_item_id": "menu-item-000123",
+        "quantity": 2,
+        "unit_price_minor": 2500,
+        "line_amount_minor": 5000
+      }
+    ],
+    "subtotal_amount_minor": 5000,
+    "delivery_fee_amount_minor": 800,
+    "discount_amount_minor": 300,
+    "total_amount_minor": 5500,
+    "currency": "BRL"
+  }
+}
