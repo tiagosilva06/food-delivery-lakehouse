@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-captured.schema.json",
+  "title": "PaymentCaptured",
+  "description": "Contract for the event emitted when an authorized payment is captured.",
+  "allOf": [
+    {
+      "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/payments" },
+        "type": { "const": "com.fooddelivery.payment.captured.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^payments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-captured.schema.json"
+        },
+        "aggregatetype": { "const": "payment" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/paymentCapturedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "paymentCapturedData": {
+      "type": "object",
+      "required": ["provider_capture_id", "amount_minor", "currency"],
+      "properties": {
+        "provider_capture_id": { "$ref": "#/$defs/identifier" },
+        "amount_minor": { "type": "integer", "minimum": 1 },
+        "currency": { "const": "BRL" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

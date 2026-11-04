@@ -1,0 +1,21 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2d-1400-7000-8000-000000000001",
+  "source": "/simulator/payments",
+  "type": "com.fooddelivery.payment.authorization-voided.v1",
+  "subject": "payments/payment-attempt-000003",
+  "time": "2026-10-28T15:06:30.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-authorization-voided.schema.json",
+  "orderid": "order-000003",
+  "correlationid": "order-000003",
+  "causationid": "019a3b2d-1350-7000-8000-000000000003",
+  "aggregatetype": "payment",
+  "aggregateid": "payment-attempt-000003",
+  "aggregateversion": 3,
+  "publishedat": "2026-10-28T15:06:30.456Z",
+  "data": {
+    "provider_void_id": "void-000001",
+    "reason_code": "RESTAURANT_REJECTED"
+  }
+}

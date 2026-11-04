@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-refunded.schema.json",
+  "title": "PaymentRefunded",
+  "description": "Contract for the event emitted when a full payment refund succeeds.",
+  "allOf": [
+    {
+      "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/payments" },
+        "type": { "const": "com.fooddelivery.payment.refunded.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^payments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-refunded.schema.json"
+        },
+        "aggregatetype": { "const": "payment" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/paymentRefundedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "paymentRefundedData": {
+      "type": "object",
+      "required": ["refund_id", "provider_refund_id", "amount_minor", "currency"],
+      "properties": {
+        "refund_id": { "$ref": "#/$defs/identifier" },
+        "provider_refund_id": { "$ref": "#/$defs/identifier" },
+        "amount_minor": { "type": "integer", "minimum": 1 },
+        "currency": { "const": "BRL" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

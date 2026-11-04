@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-authorization-voided.schema.json",
+  "title": "PaymentAuthorizationVoided",
+  "description": "Contract for the event emitted when a payment authorization is voided.",
+  "allOf": [
+    {
+      "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/payments" },
+        "type": { "const": "com.fooddelivery.payment.authorization-voided.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^payments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-authorization-voided.schema.json"
+        },
+        "aggregatetype": { "const": "payment" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/paymentAuthorizationVoidedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "paymentAuthorizationVoidedData": {
+      "type": "object",
+      "required": ["provider_void_id", "reason_code"],
+      "properties": {
+        "provider_void_id": { "$ref": "#/$defs/identifier" },
+        "reason_code": {
+          "enum": ["RESTAURANT_REJECTED", "RESTAURANT_TIMEOUT", "ORDER_CANCELLED"]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

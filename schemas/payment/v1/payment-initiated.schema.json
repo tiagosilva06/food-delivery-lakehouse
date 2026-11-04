@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-initiated.schema.json",
+  "title": "PaymentInitiated",
+  "description": "Contract for the event emitted when a payment attempt is initiated.",
+  "allOf": [
+    {
+      "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/payments" },
+        "type": { "const": "com.fooddelivery.payment.initiated.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^payments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-initiated.schema.json"
+        },
+        "aggregatetype": { "const": "payment" },
+        "aggregateversion": { "const": 1 },
+        "data": { "$ref": "#/$defs/paymentInitiatedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "paymentInitiatedData": {
+      "type": "object",
+      "required": ["payment_provider_id", "payment_method", "amount_minor", "currency"],
+      "properties": {
+        "payment_provider_id": { "$ref": "#/$defs/identifier" },
+        "payment_method": { "const": "CARD" },
+        "amount_minor": { "type": "integer", "minimum": 1 },
+        "currency": { "const": "BRL" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

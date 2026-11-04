@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-authorized.schema.json",
+  "title": "PaymentAuthorized",
+  "description": "Contract for the event emitted when a payment is authorized.",
+  "allOf": [
+    {
+      "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/payments" },
+        "type": { "const": "com.fooddelivery.payment.authorized.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^payments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/payment/v1/payment-authorized.schema.json"
+        },
+        "aggregatetype": { "const": "payment" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/paymentAuthorizedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "paymentAuthorizedData": {
+      "type": "object",
+      "required": ["provider_authorization_id", "amount_minor", "currency"],
+      "properties": {
+        "provider_authorization_id": { "$ref": "#/$defs/identifier" },
+        "amount_minor": { "type": "integer", "minimum": 1 },
+        "currency": { "const": "BRL" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
