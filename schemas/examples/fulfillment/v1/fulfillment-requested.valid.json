@@ -1,0 +1,21 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2e-1000-7000-8000-000000000001",
+  "source": "/simulator/fulfillment",
+  "type": "com.fooddelivery.fulfillment.requested.v1",
+  "subject": "fulfillments/fulfillment-000001",
+  "time": "2026-10-28T15:04:08.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/fulfillment-requested.schema.json",
+  "orderid": "order-000001",
+  "correlationid": "order-000001",
+  "causationid": "019a3b2d-1100-7000-8000-000000000001",
+  "aggregatetype": "fulfillment",
+  "aggregateid": "fulfillment-000001",
+  "aggregateversion": 1,
+  "publishedat": "2026-10-28T15:04:08.456Z",
+  "data": {
+    "restaurant_id": "restaurant-000456",
+    "acceptance_deadline_at": "2026-10-28T15:06:08.123Z"
+  }
+}

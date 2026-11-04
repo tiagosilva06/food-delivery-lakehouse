@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/order-handed-to-courier.schema.json",
+  "title": "OrderHandedToCourier",
+  "description": "Contract for the event emitted when a restaurant hands an order to a courier.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/fulfillment" },
+        "type": { "const": "com.fooddelivery.fulfillment.order-handed-to-courier.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^fulfillments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/order-handed-to-courier.schema.json"
+        },
+        "aggregatetype": { "const": "fulfillment" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/orderHandedToCourierData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "orderHandedToCourierData": {
+      "type": "object",
+      "required": ["delivery_id", "courier_id"],
+      "properties": {
+        "delivery_id": { "$ref": "#/$defs/identifier" },
+        "courier_id": { "$ref": "#/$defs/identifier" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

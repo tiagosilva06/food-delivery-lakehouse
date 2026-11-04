@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/order-rejected-by-restaurant.schema.json",
+  "title": "OrderRejectedByRestaurant",
+  "description": "Contract for the event emitted when a restaurant rejects an order.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/fulfillment" },
+        "type": { "const": "com.fooddelivery.fulfillment.order-rejected-by-restaurant.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^fulfillments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/order-rejected-by-restaurant.schema.json"
+        },
+        "aggregatetype": { "const": "fulfillment" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/orderRejectedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "orderRejectedData": {
+      "type": "object",
+      "required": ["reason_code"],
+      "properties": {
+        "reason_code": {
+          "enum": [
+            "RESTAURANT_BUSY",
+            "ITEM_UNAVAILABLE",
+            "RESTAURANT_CLOSED",
+            "OPERATIONAL_ISSUE"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

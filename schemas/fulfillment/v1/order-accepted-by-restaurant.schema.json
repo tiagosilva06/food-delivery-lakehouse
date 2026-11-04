@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/order-accepted-by-restaurant.schema.json",
+  "title": "OrderAcceptedByRestaurant",
+  "description": "Contract for the event emitted when a restaurant accepts an order.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/fulfillment" },
+        "type": { "const": "com.fooddelivery.fulfillment.order-accepted-by-restaurant.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^fulfillments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/order-accepted-by-restaurant.schema.json"
+        },
+        "aggregatetype": { "const": "fulfillment" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/orderAcceptedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "orderAcceptedData": {
+      "type": "object",
+      "required": ["estimated_preparation_seconds"],
+      "properties": {
+        "estimated_preparation_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 14400
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

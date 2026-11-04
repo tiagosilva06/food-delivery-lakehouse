@@ -13,7 +13,7 @@ dependencies = []
 [dependency-groups]
 dev = [
     "hypothesis",
-    "jsonschema",
+    "jsonschema[format]",
     "mypy",
     "pytest",
     "pytest-cov",

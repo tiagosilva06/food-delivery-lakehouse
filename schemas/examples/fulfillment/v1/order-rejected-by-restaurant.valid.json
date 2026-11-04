@@ -1,0 +1,20 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2e-1200-7000-8000-000000000001",
+  "source": "/simulator/fulfillment",
+  "type": "com.fooddelivery.fulfillment.order-rejected-by-restaurant.v1",
+  "subject": "fulfillments/fulfillment-000002",
+  "time": "2026-10-28T15:04:25.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/order-rejected-by-restaurant.schema.json",
+  "orderid": "order-000002",
+  "correlationid": "order-000002",
+  "causationid": "019a3b2e-1050-7000-8000-000000000002",
+  "aggregatetype": "fulfillment",
+  "aggregateid": "fulfillment-000002",
+  "aggregateversion": 2,
+  "publishedat": "2026-10-28T15:04:25.456Z",
+  "data": {
+    "reason_code": "RESTAURANT_BUSY"
+  }
+}

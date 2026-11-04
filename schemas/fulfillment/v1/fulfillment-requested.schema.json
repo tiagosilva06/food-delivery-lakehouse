@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/fulfillment-requested.schema.json",
+  "title": "FulfillmentRequested",
+  "description": "Contract for the event emitted when restaurant fulfillment is requested.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/fulfillment" },
+        "type": { "const": "com.fooddelivery.fulfillment.requested.v1" },
+        "subject": {
+          "type": "string",
+          "pattern": "^fulfillments/[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "dataschema": {
+          "const": "https://food-delivery-lakehouse.local/schemas/fulfillment/v1/fulfillment-requested.schema.json"
+        },
+        "aggregatetype": { "const": "fulfillment" },
+        "aggregateversion": { "const": 1 },
+        "data": { "$ref": "#/$defs/fulfillmentRequestedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "fulfillmentRequestedData": {
+      "type": "object",
+      "required": ["restaurant_id", "acceptance_deadline_at"],
+      "properties": {
+        "restaurant_id": { "$ref": "#/$defs/identifier" },
+        "acceptance_deadline_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
