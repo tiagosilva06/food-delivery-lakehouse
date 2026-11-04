@@ -1,0 +1,22 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2f-1900-7000-8000-000000000001",
+  "source": "/simulator/deliveries",
+  "type": "com.fooddelivery.delivery.failed.v1",
+  "subject": "deliveries/delivery-000004",
+  "time": "2026-10-28T15:40:00.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/delivery/v1/delivery-failed.schema.json",
+  "orderid": "order-000004",
+  "correlationid": "order-000004",
+  "causationid": "019a3b2f-1850-7000-8000-000000000004",
+  "aggregatetype": "delivery",
+  "aggregateid": "delivery-000004",
+  "aggregateversion": 7,
+  "publishedat": "2026-10-28T15:40:00.456Z",
+  "data": {
+    "assignment_attempt_id": "assignment-attempt-000004",
+    "courier_id": "courier-000792",
+    "failure_code": "VEHICLE_BREAKDOWN"
+  }
+}

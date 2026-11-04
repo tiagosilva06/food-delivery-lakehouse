@@ -1,0 +1,27 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2f-1000-7000-8000-000000000001",
+  "source": "/simulator/deliveries",
+  "type": "com.fooddelivery.delivery.requested.v1",
+  "subject": "deliveries/delivery-000001",
+  "time": "2026-10-28T15:05:33.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/delivery/v1/delivery-requested.schema.json",
+  "orderid": "order-000001",
+  "correlationid": "order-000001",
+  "causationid": "019a3b2c-2000-7000-8000-000000000001",
+  "aggregatetype": "delivery",
+  "aggregateid": "delivery-000001",
+  "aggregateversion": 1,
+  "publishedat": "2026-10-28T15:05:33.456Z",
+  "data": {
+    "restaurant_id": "restaurant-000456",
+    "pickup_location": { "latitude": -23.5501, "longitude": -46.6340 },
+    "dropoff_location": {
+      "delivery_zone_id": "zone-01",
+      "latitude": -23.5505,
+      "longitude": -46.6333
+    },
+    "delivery_deadline_at": "2026-10-28T15:50:00.000Z"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/delivery/v1/courier-assignment-cancelled.schema.json",
+  "title": "CourierAssignmentCancelled",
+  "description": "Contract for the event emitted when a courier assignment is cancelled.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/deliveries" },
+        "type": { "const": "com.fooddelivery.delivery.courier-assignment-cancelled.v1" },
+        "subject": { "type": "string", "pattern": "^deliveries/[A-Za-z0-9][A-Za-z0-9_-]*$" },
+        "dataschema": { "const": "https://food-delivery-lakehouse.local/schemas/delivery/v1/courier-assignment-cancelled.schema.json" },
+        "aggregatetype": { "const": "delivery" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/courierAssignmentCancelledData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "courierAssignmentCancelledData": {
+      "type": "object",
+      "required": ["assignment_attempt_id", "courier_id", "reason_code"],
+      "properties": {
+        "assignment_attempt_id": { "$ref": "#/$defs/identifier" },
+        "courier_id": { "$ref": "#/$defs/identifier" },
+        "reason_code": { "enum": ["COURIER_UNAVAILABLE", "COURIER_REJECTED", "SYSTEM_REASSIGNMENT"] }
+      },
+      "additionalProperties": false
+    }
+  }
+}

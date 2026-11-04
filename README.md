@@ -52,7 +52,7 @@ Cada componente local reproduzirá uma responsabilidade que poderia ser assumida
 ## Roadmap
 
 - [x] Criar a estrutura inicial do repositório e os padrões de desenvolvimento
-- [ ] Definir os contratos CloudEvents e JSON Schema
+- [x] Definir os contratos CloudEvents e JSON Schema
 - [ ] Construir o simulador determinístico dos domínios
 - [ ] Configurar Kafka e Apicurio Registry
 - [ ] Configurar o armazenamento S3 local, Delta Lake e Hive Metastore

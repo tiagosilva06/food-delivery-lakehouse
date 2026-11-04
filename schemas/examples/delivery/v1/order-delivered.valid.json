@@ -1,0 +1,22 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2f-1700-7000-8000-000000000001",
+  "source": "/simulator/deliveries",
+  "type": "com.fooddelivery.delivery.order-delivered.v1",
+  "subject": "deliveries/delivery-000001",
+  "time": "2026-10-28T15:44:30.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/delivery/v1/order-delivered.schema.json",
+  "orderid": "order-000001",
+  "correlationid": "order-000001",
+  "causationid": "019a3b2f-1600-7000-8000-000000000001",
+  "aggregatetype": "delivery",
+  "aggregateid": "delivery-000001",
+  "aggregateversion": 7,
+  "publishedat": "2026-10-28T15:44:30.456Z",
+  "data": {
+    "assignment_attempt_id": "assignment-attempt-000001",
+    "courier_id": "courier-000789",
+    "confirmation_type": "CUSTOMER_RECEIVED"
+  }
+}

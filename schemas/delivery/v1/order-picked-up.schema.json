@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/delivery/v1/order-picked-up.schema.json",
+  "title": "OrderPickedUp",
+  "description": "Contract for the event emitted when a courier picks up the order.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/deliveries" },
+        "type": { "const": "com.fooddelivery.delivery.order-picked-up.v1" },
+        "subject": { "type": "string", "pattern": "^deliveries/[A-Za-z0-9][A-Za-z0-9_-]*$" },
+        "dataschema": { "const": "https://food-delivery-lakehouse.local/schemas/delivery/v1/order-picked-up.schema.json" },
+        "aggregatetype": { "const": "delivery" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/orderPickedUpData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "orderPickedUpData": {
+      "type": "object",
+      "required": ["assignment_attempt_id", "courier_id"],
+      "properties": {
+        "assignment_attempt_id": { "$ref": "#/$defs/identifier" },
+        "courier_id": { "$ref": "#/$defs/identifier" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/delivery/v1/delivery-requested.schema.json",
+  "title": "DeliveryRequested",
+  "description": "Contract for the event emitted when delivery is requested.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/deliveries" },
+        "type": { "const": "com.fooddelivery.delivery.requested.v1" },
+        "subject": { "type": "string", "pattern": "^deliveries/[A-Za-z0-9][A-Za-z0-9_-]*$" },
+        "dataschema": { "const": "https://food-delivery-lakehouse.local/schemas/delivery/v1/delivery-requested.schema.json" },
+        "aggregatetype": { "const": "delivery" },
+        "aggregateversion": { "const": 1 },
+        "data": { "$ref": "#/$defs/deliveryRequestedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "pickupLocation": {
+      "type": "object",
+      "required": ["latitude", "longitude"],
+      "properties": {
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+      },
+      "additionalProperties": false
+    },
+    "dropoffLocation": {
+      "type": "object",
+      "required": ["delivery_zone_id", "latitude", "longitude"],
+      "properties": {
+        "delivery_zone_id": { "$ref": "#/$defs/identifier" },
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+      },
+      "additionalProperties": false
+    },
+    "deliveryRequestedData": {
+      "type": "object",
+      "required": ["restaurant_id", "pickup_location", "dropoff_location", "delivery_deadline_at"],
+      "properties": {
+        "restaurant_id": { "$ref": "#/$defs/identifier" },
+        "pickup_location": { "$ref": "#/$defs/pickupLocation" },
+        "dropoff_location": { "$ref": "#/$defs/dropoffLocation" },
+        "delivery_deadline_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/delivery/v1/courier-arrived-at-restaurant.schema.json",
+  "title": "CourierArrivedAtRestaurant",
+  "description": "Contract for the event emitted when the courier arrives at the restaurant.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/deliveries" },
+        "type": { "const": "com.fooddelivery.delivery.courier-arrived-at-restaurant.v1" },
+        "subject": { "type": "string", "pattern": "^deliveries/[A-Za-z0-9][A-Za-z0-9_-]*$" },
+        "dataschema": { "const": "https://food-delivery-lakehouse.local/schemas/delivery/v1/courier-arrived-at-restaurant.schema.json" },
+        "aggregatetype": { "const": "delivery" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/courierEventData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "courierEventData": {
+      "type": "object",
+      "required": ["assignment_attempt_id", "courier_id"],
+      "properties": {
+        "assignment_attempt_id": { "$ref": "#/$defs/identifier" },
+        "courier_id": { "$ref": "#/$defs/identifier" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

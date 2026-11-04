@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/delivery/v1/delivery-cancelled.schema.json",
+  "title": "DeliveryCancelled",
+  "description": "Contract for the event emitted when delivery is cancelled before pickup.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/deliveries" },
+        "type": { "const": "com.fooddelivery.delivery.cancelled.v1" },
+        "subject": { "type": "string", "pattern": "^deliveries/[A-Za-z0-9][A-Za-z0-9_-]*$" },
+        "dataschema": { "const": "https://food-delivery-lakehouse.local/schemas/delivery/v1/delivery-cancelled.schema.json" },
+        "aggregatetype": { "const": "delivery" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/deliveryCancelledData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "deliveryCancelledData": {
+      "type": "object",
+      "required": ["reason_code"],
+      "properties": {
+        "reason_code": { "enum": ["ORDER_CANCELLED", "RESTAURANT_CANCELLED", "SYSTEM_ERROR"] }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "specversion": "1.0",
+  "id": "019a3b2f-1300-7000-8000-000000000001",
+  "source": "/simulator/deliveries",
+  "type": "com.fooddelivery.delivery.courier-assignment-cancelled.v1",
+  "subject": "deliveries/delivery-000002",
+  "time": "2026-10-28T15:08:00.123Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://food-delivery-lakehouse.local/schemas/delivery/v1/courier-assignment-cancelled.schema.json",
+  "orderid": "order-000002",
+  "correlationid": "order-000002",
+  "causationid": "019a3b2f-1250-7000-8000-000000000002",
+  "aggregatetype": "delivery",
+  "aggregateid": "delivery-000002",
+  "aggregateversion": 4,
+  "publishedat": "2026-10-28T15:08:00.456Z",
+  "data": {
+    "assignment_attempt_id": "assignment-attempt-000002",
+    "courier_id": "courier-000790",
+    "reason_code": "COURIER_UNAVAILABLE"
+  }
+}

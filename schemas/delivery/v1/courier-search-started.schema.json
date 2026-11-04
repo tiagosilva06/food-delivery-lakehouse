@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://food-delivery-lakehouse.local/schemas/delivery/v1/courier-search-started.schema.json",
+  "title": "CourierSearchStarted",
+  "description": "Contract for the event emitted when a courier assignment attempt starts.",
+  "allOf": [
+    { "$ref": "https://food-delivery-lakehouse.local/schemas/common/v1/cloud-event.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "source": { "const": "/simulator/deliveries" },
+        "type": { "const": "com.fooddelivery.delivery.courier-search-started.v1" },
+        "subject": { "type": "string", "pattern": "^deliveries/[A-Za-z0-9][A-Za-z0-9_-]*$" },
+        "dataschema": { "const": "https://food-delivery-lakehouse.local/schemas/delivery/v1/courier-search-started.schema.json" },
+        "aggregatetype": { "const": "delivery" },
+        "aggregateversion": { "type": "integer", "minimum": 2 },
+        "data": { "$ref": "#/$defs/courierSearchStartedData" }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "courierSearchStartedData": {
+      "type": "object",
+      "required": ["assignment_attempt_id", "search_radius_meters", "assignment_deadline_at"],
+      "properties": {
+        "assignment_attempt_id": { "$ref": "#/$defs/identifier" },
+        "search_radius_meters": { "type": "integer", "minimum": 100, "maximum": 100000 },
+        "assignment_deadline_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
