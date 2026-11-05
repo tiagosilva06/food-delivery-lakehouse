@@ -1,0 +1,15 @@
+[simulation]
+profile_name = "dev"
+seed = 20261028
+logical_start_at = "2026-10-28T00:00:00Z"
+duration_hours = 24
+order_count = 100
+
+[throughput]
+target_peak_events_per_second = 50
+
+[anomalies]
+duplicate_event_rate = 0.01
+late_event_rate = 0.02
+out_of_order_rate = 0.02
+invalid_schema_rate = 0.001
