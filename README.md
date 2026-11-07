@@ -4,7 +4,7 @@ Lakehouse local de Engenharia de Dados que reproduzirá, com containers Docker, 
 
 O projeto combinará processamento streaming e batch para acompanhar a jornada dos pedidos, reconstruir estados operacionais, tratar eventos duplicados ou fora de ordem e reconciliar pagamentos com provedores externos.
 
-No caminho streaming, Kafka e Spark Structured Streaming conduzirão os eventos de Bronze/Raw até a Silver operacional, pronta para consumo em tempo quase real. No caminho batch, arquivos externos passarão por Landing, Bronze e Silver antes de o dbt construir Gold e Serving. Airflow coordenará o batch e as operações finitas; OpenMetadata concentrará catálogo, linhagem e governança.
+No caminho streaming, Kafka e Spark Structured Streaming conduzirão os eventos de Bronze/Raw até a Silver operacional, consultada pelo Grafana via Trino para acompanhar a operação em tempo quase real. No caminho batch, arquivos externos passarão por Landing, Bronze e Silver antes de o dbt construir Gold e Serving, consumidos analiticamente pelo Superset. Airflow coordenará o batch e as operações finitas; OpenMetadata concentrará catálogo, linhagem e governança.
 
 > Status: fundação do projeto e contratos de eventos concluídos; simulador determinístico em construção.
 
@@ -31,8 +31,8 @@ Cada componente local reproduzirá uma responsabilidade que poderia ser assumida
 | dbt-trino | dbt-databricks | modelos permanecem; adapter e configuração mudam |
 | Apache Airflow | Amazon MWAA ou Airflow corporativo | DAGs e regras operacionais permanecem em runtime gerenciado |
 | PostgreSQL | Amazon RDS for PostgreSQL | usado apenas pelos serviços que ainda exigirem banco relacional |
-| Prometheus e Grafana | Amazon CloudWatch e Amazon Managed Grafana | stack local substituída ou integrada |
-| Apache Superset | Databricks AI/BI | consumo local substituído no alvo de referência |
+| Prometheus e Grafana | Amazon CloudWatch e Amazon Managed Grafana | observabilidade e visualização operacional substituídas ou integradas |
+| Apache Superset | Databricks AI/BI | BI analítico local substituído no alvo de referência |
 | Docker Compose | serviços gerenciados e IaC | usado somente para reprodução local |
 
 ## Stack principal
@@ -49,6 +49,9 @@ Cada componente local reproduzirá uma responsabilidade que poderia ser assumida
 - Docker
 - armazenamento compatível com S3
 - PostgreSQL
+- Prometheus
+- Grafana
+- Apache Superset
 - SQL
 
 ## Roadmap
@@ -66,7 +69,8 @@ Cada componente local reproduzirá uma responsabilidade que poderia ser assumida
 - [ ] Orquestrar batch, backfills, reparos e manutenção com Airflow
 - [ ] Implementar catálogo, linhagem e governança com OpenMetadata
 - [ ] Implementar observabilidade e geração de evidências
-- [ ] Construir os dashboards no Superset
+- [ ] Construir Live Operations e Platform Observability no Grafana
+- [ ] Construir o dashboard analítico no Superset
 - [ ] Implementar CI, segurança e testes de recuperação
 - [ ] Executar o benchmark final
 - [ ] Validar o Terraform offline e finalizar runbooks e documentação
