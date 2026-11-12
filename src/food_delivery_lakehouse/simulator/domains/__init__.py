@@ -5,5 +5,6 @@ from food_delivery_lakehouse.simulator.domains.order import (
     OrderEventGenerator,
     OrderItem,
 )
+from food_delivery_lakehouse.simulator.domains.payment import PaymentEventGenerator
 
-__all__ = ["DeliveryLocation", "OrderEventGenerator", "OrderItem"]
+__all__ = ["DeliveryLocation", "OrderEventGenerator", "OrderItem", "PaymentEventGenerator"]
