@@ -10,11 +10,11 @@ from food_delivery_lakehouse.simulator.identifiers import DeterministicUuid7Gene
 type JsonValue = None | bool | int | float | str | list[JsonValue] | dict[str, JsonValue]
 type JsonObject = dict[str, JsonValue]
 
-_DOMAIN_RESOURCES = {
-    "order": "orders",
-    "payment": "payments",
-    "fulfillment": "fulfillments",
-    "delivery": "deliveries",
+_DOMAIN_ROUTES = {
+    "order": ("orders", "orders"),
+    "payment": ("payments", "payments"),
+    "fulfillment": ("fulfillment", "fulfillments"),
+    "delivery": ("deliveries", "deliveries"),
 }
 
 
@@ -116,7 +116,7 @@ class CloudEventFactory:
         normalized_domain = domain.strip()
         normalized_event_name = event_name.strip()
         normalized_schema_name = schema_name.strip()
-        if normalized_domain not in _DOMAIN_RESOURCES:
+        if normalized_domain not in _DOMAIN_ROUTES:
             msg = f"unsupported event domain: {normalized_domain}"
             raise ValueError(msg)
         if not normalized_event_name:
@@ -126,13 +126,13 @@ class CloudEventFactory:
             msg = "schema_name must not be empty"
             raise ValueError(msg)
 
-        resource = _DOMAIN_RESOURCES[normalized_domain]
+        source_name, subject_resource = _DOMAIN_ROUTES[normalized_domain]
         event_time = self.clock.now()
         return SimulatedEvent(
             event_id=self.event_ids.next_id(),
-            source=f"/simulator/{resource}",
+            source=f"/simulator/{source_name}",
             event_type=f"com.fooddelivery.{normalized_domain}.{normalized_event_name}.v1",
-            subject=f"{resource}/{aggregate_id}",
+            subject=f"{subject_resource}/{aggregate_id}",
             occurred_at=event_time,
             data_schema=(
                 "https://food-delivery-lakehouse.local/schemas/"
