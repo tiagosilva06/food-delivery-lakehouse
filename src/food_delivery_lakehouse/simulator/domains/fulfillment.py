@@ -2,7 +2,7 @@
 
 import random
 from dataclasses import dataclass, field
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from food_delivery_lakehouse.simulator.events import (
     CloudEventFactory,
@@ -14,6 +14,9 @@ from food_delivery_lakehouse.simulator.identifiers import SequenceIdGenerator
 _ORDER_CREATED = "com.fooddelivery.order.created.v1"
 _PAYMENT_AUTHORIZED = "com.fooddelivery.payment.authorized.v1"
 _FULFILLMENT_REQUESTED = "com.fooddelivery.fulfillment.requested.v1"
+_ORDER_ACCEPTED = "com.fooddelivery.fulfillment.order-accepted-by-restaurant.v1"
+_ORDER_CONFIRMED = "com.fooddelivery.order.confirmed.v1"
+_PREPARATION_STARTED = "com.fooddelivery.fulfillment.preparation-started.v1"
 
 
 @dataclass(slots=True)
@@ -99,4 +102,75 @@ class FulfillmentEventGenerator:
             aggregate_id=fulfillment_requested.aggregate_id,
             aggregate_version=fulfillment_requested.aggregate_version + 1,
             data=data,
+        )
+
+    def create_preparation_started(
+        self,
+        order_accepted: SimulatedEvent,
+        order_confirmed: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Start restaurant preparation after the order is confirmed."""
+        if order_accepted.event_type != _ORDER_ACCEPTED:
+            msg = f"expected {_ORDER_ACCEPTED}, got {order_accepted.event_type}"
+            raise ValueError(msg)
+        if order_confirmed.event_type != _ORDER_CONFIRMED:
+            msg = f"expected {_ORDER_CONFIRMED}, got {order_confirmed.event_type}"
+            raise ValueError(msg)
+        if order_accepted.order_id != order_confirmed.order_id:
+            msg = "acceptance and confirmation must belong to the same order"
+            raise ValueError(msg)
+
+        estimated_seconds = order_accepted.data.get("estimated_preparation_seconds")
+        if not isinstance(estimated_seconds, int) or isinstance(estimated_seconds, bool):
+            msg = "estimated_preparation_seconds must be int"
+            raise ValueError(msg)
+
+        delay_ms = self.random_stream.randint(100, 500)
+        self.event_factory.clock.advance(timedelta(milliseconds=delay_ms))
+        estimated_ready_at = self.event_factory.clock.now() + timedelta(seconds=estimated_seconds)
+        data: JsonObject = {
+            "estimated_ready_at": (
+                estimated_ready_at.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+            ),
+        }
+        return self.event_factory.create(
+            domain="fulfillment",
+            event_name="preparation-started",
+            schema_name="preparation-started",
+            order_id=order_accepted.order_id,
+            causation_id=order_confirmed.event_id,
+            aggregate_id=order_accepted.aggregate_id,
+            aggregate_version=order_accepted.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_order_ready_for_pickup(
+        self,
+        preparation_started: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Finish preparation at the deterministic estimated ready time."""
+        if preparation_started.event_type != _PREPARATION_STARTED:
+            msg = f"expected {_PREPARATION_STARTED}, got {preparation_started.event_type}"
+            raise ValueError(msg)
+
+        estimated_ready_value = preparation_started.data.get("estimated_ready_at")
+        if not isinstance(estimated_ready_value, str):
+            msg = "estimated_ready_at must be str"
+            raise ValueError(msg)
+        estimated_ready_at = datetime.fromisoformat(estimated_ready_value.replace("Z", "+00:00"))
+        remaining_time = estimated_ready_at - self.event_factory.clock.now()
+        if remaining_time < timedelta(0):
+            msg = "estimated_ready_at cannot be before the current virtual time"
+            raise ValueError(msg)
+        self.event_factory.clock.advance(remaining_time)
+
+        return self.event_factory.create(
+            domain="fulfillment",
+            event_name="order-ready-for-pickup",
+            schema_name="order-ready-for-pickup",
+            order_id=preparation_started.order_id,
+            causation_id=preparation_started.event_id,
+            aggregate_id=preparation_started.aggregate_id,
+            aggregate_version=preparation_started.aggregate_version + 1,
+            data={},
         )

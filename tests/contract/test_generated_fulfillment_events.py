@@ -15,10 +15,7 @@ from food_delivery_lakehouse.simulator.randomness import RandomStreams
 from .schema_helpers import REPOSITORY_ROOT, build_validator
 
 
-def _create_generated_fulfillment_events() -> tuple[
-    SimulatedEvent,
-    SimulatedEvent,
-]:
+def _create_generated_fulfillment_events() -> tuple[SimulatedEvent, ...]:
     clock = VirtualClock(datetime(2026, 10, 28, tzinfo=UTC))
     streams = RandomStreams(20261028)
 
@@ -51,8 +48,16 @@ def _create_generated_fulfillment_events() -> tuple[
         payment_authorized,
     )
     order_accepted = fulfillment_generator.create_order_accepted(fulfillment_requested)
+    payment_captured = payment_generator.create_payment_captured(payment_authorized)
+    order_confirmed = order_generator.create_order_confirmed(
+        order_created, payment_captured, order_accepted
+    )
+    preparation_started = fulfillment_generator.create_preparation_started(
+        order_accepted, order_confirmed
+    )
+    order_ready = fulfillment_generator.create_order_ready_for_pickup(preparation_started)
 
-    return fulfillment_requested, order_accepted
+    return fulfillment_requested, order_accepted, preparation_started, order_ready
 
 
 @pytest.mark.parametrize(
@@ -63,6 +68,8 @@ def _create_generated_fulfillment_events() -> tuple[
             (
                 "fulfillment-requested",
                 "order-accepted-by-restaurant",
+                "preparation-started",
+                "order-ready-for-pickup",
             ),
             strict=True,
         )
