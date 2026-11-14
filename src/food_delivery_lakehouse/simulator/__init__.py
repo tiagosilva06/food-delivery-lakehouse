@@ -1,6 +1,7 @@
 """Deterministic food delivery event simulator."""
 
 from food_delivery_lakehouse.simulator.clock import VirtualClock
+from food_delivery_lakehouse.simulator.domains.delivery import DeliveryEventGenerator
 from food_delivery_lakehouse.simulator.domains.fulfillment import FulfillmentEventGenerator
 from food_delivery_lakehouse.simulator.domains.order import OrderEventGenerator
 from food_delivery_lakehouse.simulator.domains.payment import PaymentEventGenerator
@@ -9,14 +10,17 @@ from food_delivery_lakehouse.simulator.identifiers import (
     DeterministicUuid7Generator,
     SequenceIdGenerator,
 )
+from food_delivery_lakehouse.simulator.journey import OrderJourneySimulator
 from food_delivery_lakehouse.simulator.randomness import RandomStreams
 from food_delivery_lakehouse.simulator.settings import SimulationSettings
 
 __all__ = [
     "DeterministicUuid7Generator",
     "CloudEventFactory",
+    "DeliveryEventGenerator",
     "FulfillmentEventGenerator",
     "OrderEventGenerator",
+    "OrderJourneySimulator",
     "PaymentEventGenerator",
     "RandomStreams",
     "SequenceIdGenerator",
