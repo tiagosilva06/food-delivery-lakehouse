@@ -15,6 +15,8 @@ from food_delivery_lakehouse.simulator.identifiers import SequenceIdGenerator
 _ORDER_CREATED = "com.fooddelivery.order.created.v1"
 _PAYMENT_CAPTURED = "com.fooddelivery.payment.captured.v1"
 _ORDER_ACCEPTED = "com.fooddelivery.fulfillment.order-accepted-by-restaurant.v1"
+_ORDER_CONFIRMED = "com.fooddelivery.order.confirmed.v1"
+_ORDER_DELIVERED = "com.fooddelivery.delivery.order-delivered.v1"
 
 
 def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
@@ -162,6 +164,33 @@ class OrderEventGenerator:
             causation_id=payment_captured.event_id,
             aggregate_id=order_created.aggregate_id,
             aggregate_version=order_created.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_order_completed(
+        self,
+        order_confirmed: SimulatedEvent,
+        order_delivered: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Complete an order after its successful delivery."""
+        _require_event_type(order_confirmed, _ORDER_CONFIRMED)
+        _require_event_type(order_delivered, _ORDER_DELIVERED)
+        if order_confirmed.order_id != order_delivered.order_id:
+            msg = "confirmed order and delivery must belong to the same order"
+            raise ValueError(msg)
+
+        self.event_factory.clock.advance(
+            timedelta(milliseconds=self.random_stream.randint(100, 500))
+        )
+        data: JsonObject = {"delivery_id": order_delivered.aggregate_id}
+        return self.event_factory.create(
+            domain="order",
+            event_name="completed",
+            schema_name="order-completed",
+            order_id=order_confirmed.order_id,
+            causation_id=order_delivered.event_id,
+            aggregate_id=order_confirmed.aggregate_id,
+            aggregate_version=order_confirmed.aggregate_version + 1,
             data=data,
         )
 

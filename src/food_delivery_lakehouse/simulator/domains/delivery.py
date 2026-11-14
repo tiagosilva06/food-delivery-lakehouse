@@ -19,6 +19,7 @@ _COURIER_ASSIGNED = "com.fooddelivery.delivery.courier-assigned.v1"
 _COURIER_ARRIVED = "com.fooddelivery.delivery.courier-arrived-at-restaurant.v1"
 _ORDER_HANDED_TO_COURIER = "com.fooddelivery.fulfillment.order-handed-to-courier.v1"
 _ORDER_PICKED_UP = "com.fooddelivery.delivery.order-picked-up.v1"
+_DELIVERY_STARTED = "com.fooddelivery.delivery.started.v1"
 
 
 def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
@@ -281,5 +282,47 @@ class DeliveryEventGenerator:
             causation_id=order_picked_up.event_id,
             aggregate_id=order_picked_up.aggregate_id,
             aggregate_version=order_picked_up.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_order_delivered(
+        self,
+        delivery_started: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Complete a successful delivery at its estimated arrival time."""
+        _require_event_type(delivery_started, _DELIVERY_STARTED)
+
+        assignment_attempt_id = delivery_started.data.get("assignment_attempt_id")
+        courier_id = delivery_started.data.get("courier_id")
+        if not isinstance(assignment_attempt_id, str):
+            msg = "assignment_attempt_id must be str"
+            raise ValueError(msg)
+        if not isinstance(courier_id, str):
+            msg = "courier_id must be str"
+            raise ValueError(msg)
+
+        estimated_delivery = _parse_timestamp(
+            delivery_started.data.get("estimated_delivery_at"),
+            "estimated_delivery_at",
+        )
+        remaining_time = estimated_delivery - self.event_factory.clock.now()
+        if remaining_time < timedelta(0):
+            msg = "estimated_delivery_at cannot be before the current virtual time"
+            raise ValueError(msg)
+        self.event_factory.clock.advance(remaining_time)
+
+        data: JsonObject = {
+            "assignment_attempt_id": assignment_attempt_id,
+            "courier_id": courier_id,
+            "confirmation_type": self.random_stream.choice(("CUSTOMER_RECEIVED", "LEFT_AT_DOOR")),
+        }
+        return self.event_factory.create(
+            domain="delivery",
+            event_name="order-delivered",
+            schema_name="order-delivered",
+            order_id=delivery_started.order_id,
+            causation_id=delivery_started.event_id,
+            aggregate_id=delivery_started.aggregate_id,
+            aggregate_version=delivery_started.aggregate_version + 1,
             data=data,
         )
