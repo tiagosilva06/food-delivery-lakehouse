@@ -17,6 +17,8 @@ _FULFILLMENT_REQUESTED = "com.fooddelivery.fulfillment.requested.v1"
 _ORDER_ACCEPTED = "com.fooddelivery.fulfillment.order-accepted-by-restaurant.v1"
 _ORDER_CONFIRMED = "com.fooddelivery.order.confirmed.v1"
 _PREPARATION_STARTED = "com.fooddelivery.fulfillment.preparation-started.v1"
+_ORDER_READY = "com.fooddelivery.fulfillment.order-ready-for-pickup.v1"
+_COURIER_ARRIVED = "com.fooddelivery.delivery.courier-arrived-at-restaurant.v1"
 
 
 @dataclass(slots=True)
@@ -173,4 +175,41 @@ class FulfillmentEventGenerator:
             aggregate_id=preparation_started.aggregate_id,
             aggregate_version=preparation_started.aggregate_version + 1,
             data={},
+        )
+
+    def create_order_handed_to_courier(
+        self,
+        order_ready: SimulatedEvent,
+        courier_arrived: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Hand a ready order to the courier waiting at the restaurant."""
+        if order_ready.event_type != _ORDER_READY:
+            msg = f"expected {_ORDER_READY}, got {order_ready.event_type}"
+            raise ValueError(msg)
+        if courier_arrived.event_type != _COURIER_ARRIVED:
+            msg = f"expected {_COURIER_ARRIVED}, got {courier_arrived.event_type}"
+            raise ValueError(msg)
+        if order_ready.order_id != courier_arrived.order_id:
+            msg = "ready order and courier arrival must belong to the same order"
+            raise ValueError(msg)
+
+        courier_id = courier_arrived.data.get("courier_id")
+        if not isinstance(courier_id, str):
+            msg = "courier_id must be str"
+            raise ValueError(msg)
+
+        self.event_factory.clock.advance(timedelta(minutes=self.random_stream.randint(1, 5)))
+        data: JsonObject = {
+            "delivery_id": courier_arrived.aggregate_id,
+            "courier_id": courier_id,
+        }
+        return self.event_factory.create(
+            domain="fulfillment",
+            event_name="order-handed-to-courier",
+            schema_name="order-handed-to-courier",
+            order_id=order_ready.order_id,
+            causation_id=courier_arrived.event_id,
+            aggregate_id=order_ready.aggregate_id,
+            aggregate_version=order_ready.aggregate_version + 1,
+            data=data,
         )

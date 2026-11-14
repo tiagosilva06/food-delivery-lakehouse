@@ -16,6 +16,9 @@ _ORDER_READY = "com.fooddelivery.fulfillment.order-ready-for-pickup.v1"
 _DELIVERY_REQUESTED = "com.fooddelivery.delivery.requested.v1"
 _COURIER_SEARCH_STARTED = "com.fooddelivery.delivery.courier-search-started.v1"
 _COURIER_ASSIGNED = "com.fooddelivery.delivery.courier-assigned.v1"
+_COURIER_ARRIVED = "com.fooddelivery.delivery.courier-arrived-at-restaurant.v1"
+_ORDER_HANDED_TO_COURIER = "com.fooddelivery.fulfillment.order-handed-to-courier.v1"
+_ORDER_PICKED_UP = "com.fooddelivery.delivery.order-picked-up.v1"
 
 
 def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
@@ -195,5 +198,88 @@ class DeliveryEventGenerator:
             causation_id=courier_assigned.event_id,
             aggregate_id=courier_assigned.aggregate_id,
             aggregate_version=courier_assigned.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_order_picked_up(
+        self,
+        courier_arrived: SimulatedEvent,
+        order_handed_to_courier: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Record the courier pickup after the restaurant handoff."""
+        _require_event_type(courier_arrived, _COURIER_ARRIVED)
+        _require_event_type(order_handed_to_courier, _ORDER_HANDED_TO_COURIER)
+        if courier_arrived.order_id != order_handed_to_courier.order_id:
+            msg = "courier arrival and handoff must belong to the same order"
+            raise ValueError(msg)
+        if courier_arrived.aggregate_id != order_handed_to_courier.data.get("delivery_id"):
+            msg = "handoff must reference the same delivery"
+            raise ValueError(msg)
+
+        assignment_attempt_id = courier_arrived.data.get("assignment_attempt_id")
+        courier_id = courier_arrived.data.get("courier_id")
+        if not isinstance(assignment_attempt_id, str):
+            msg = "assignment_attempt_id must be str"
+            raise ValueError(msg)
+        if not isinstance(courier_id, str):
+            msg = "courier_id must be str"
+            raise ValueError(msg)
+        if courier_id != order_handed_to_courier.data.get("courier_id"):
+            msg = "handoff must reference the assigned courier"
+            raise ValueError(msg)
+
+        self.event_factory.clock.advance(
+            timedelta(milliseconds=self.random_stream.randint(100, 500))
+        )
+        data: JsonObject = {
+            "assignment_attempt_id": assignment_attempt_id,
+            "courier_id": courier_id,
+        }
+        return self.event_factory.create(
+            domain="delivery",
+            event_name="order-picked-up",
+            schema_name="order-picked-up",
+            order_id=courier_arrived.order_id,
+            causation_id=order_handed_to_courier.event_id,
+            aggregate_id=courier_arrived.aggregate_id,
+            aggregate_version=courier_arrived.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_delivery_started(
+        self,
+        order_picked_up: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Start transit from the restaurant to the customer."""
+        _require_event_type(order_picked_up, _ORDER_PICKED_UP)
+
+        assignment_attempt_id = order_picked_up.data.get("assignment_attempt_id")
+        courier_id = order_picked_up.data.get("courier_id")
+        if not isinstance(assignment_attempt_id, str):
+            msg = "assignment_attempt_id must be str"
+            raise ValueError(msg)
+        if not isinstance(courier_id, str):
+            msg = "courier_id must be str"
+            raise ValueError(msg)
+
+        self.event_factory.clock.advance(
+            timedelta(milliseconds=self.random_stream.randint(100, 500))
+        )
+        estimated_delivery = self.event_factory.clock.now() + timedelta(
+            minutes=self.random_stream.randint(10, 45)
+        )
+        data: JsonObject = {
+            "assignment_attempt_id": assignment_attempt_id,
+            "courier_id": courier_id,
+            "estimated_delivery_at": _format_timestamp(estimated_delivery),
+        }
+        return self.event_factory.create(
+            domain="delivery",
+            event_name="started",
+            schema_name="delivery-started",
+            order_id=order_picked_up.order_id,
+            causation_id=order_picked_up.event_id,
+            aggregate_id=order_picked_up.aggregate_id,
+            aggregate_version=order_picked_up.aggregate_version + 1,
             data=data,
         )
