@@ -2,6 +2,7 @@
 
 import random
 from dataclasses import dataclass, field
+from datetime import timedelta
 
 from food_delivery_lakehouse.simulator.events import (
     CloudEventFactory,
@@ -10,6 +11,17 @@ from food_delivery_lakehouse.simulator.events import (
     SimulatedEvent,
 )
 from food_delivery_lakehouse.simulator.identifiers import SequenceIdGenerator
+
+_ORDER_CREATED = "com.fooddelivery.order.created.v1"
+_PAYMENT_CAPTURED = "com.fooddelivery.payment.captured.v1"
+_ORDER_ACCEPTED = "com.fooddelivery.fulfillment.order-accepted-by-restaurant.v1"
+
+
+def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
+    """Reject an invalid predecessor in the Order lifecycle."""
+    if event.event_type != expected_type:
+        msg = f"expected predecessor {expected_type}, got {event.event_type}"
+        raise ValueError(msg)
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,6 +124,44 @@ class OrderEventGenerator:
             causation_id=command_id,
             aggregate_id=order_id,
             aggregate_version=1,
+            data=data,
+        )
+
+    def create_order_confirmed(
+        self,
+        order_created: SimulatedEvent,
+        payment_captured: SimulatedEvent,
+        order_accepted: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Confirm an accepted order after its payment is captured."""
+        _require_event_type(order_created, _ORDER_CREATED)
+        _require_event_type(payment_captured, _PAYMENT_CAPTURED)
+        _require_event_type(order_accepted, _ORDER_ACCEPTED)
+
+        order_ids = {
+            order_created.order_id,
+            payment_captured.order_id,
+            order_accepted.order_id,
+        }
+        if len(order_ids) != 1:
+            msg = "order, payment, and fulfillment must belong to the same order"
+            raise ValueError(msg)
+
+        delay_ms = self.random_stream.randint(100, 500)
+        self.event_factory.clock.advance(timedelta(milliseconds=delay_ms))
+
+        data: JsonObject = {
+            "payment_attempt_id": payment_captured.aggregate_id,
+            "fulfillment_id": order_accepted.aggregate_id,
+        }
+        return self.event_factory.create(
+            domain="order",
+            event_name="confirmed",
+            schema_name="order-confirmed",
+            order_id=order_created.order_id,
+            causation_id=payment_captured.event_id,
+            aggregate_id=order_created.aggregate_id,
+            aggregate_version=order_created.aggregate_version + 1,
             data=data,
         )
 
