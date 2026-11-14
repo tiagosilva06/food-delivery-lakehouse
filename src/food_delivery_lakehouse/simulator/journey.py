@@ -78,3 +78,43 @@ class OrderJourneySimulator:
             order_delivered,
             order_completed,
         )
+
+    def generate_payment_failure_order(self) -> tuple[SimulatedEvent, ...]:
+        """Generate an order that stops after payment authorization fails."""
+        order_created = self.order.create_order_created()
+        payment_initiated = self.payment.create_payment_initiated(order_created)
+        payment_failed = self.payment.create_payment_authorization_failed(payment_initiated)
+        order_failed = self.order.create_order_failed_from_payment(
+            order_created,
+            payment_failed,
+        )
+        return order_created, payment_initiated, payment_failed, order_failed
+
+    def generate_restaurant_rejection_order(self) -> tuple[SimulatedEvent, ...]:
+        """Generate an authorized order rejected by the restaurant."""
+        order_created = self.order.create_order_created()
+        payment_initiated = self.payment.create_payment_initiated(order_created)
+        payment_authorized = self.payment.create_payment_authorized(payment_initiated)
+        fulfillment_requested = self.fulfillment.create_fulfillment_requested(
+            order_created,
+            payment_authorized,
+        )
+        order_rejected = self.fulfillment.create_order_rejected(fulfillment_requested)
+        payment_voided = self.payment.create_payment_authorization_voided(
+            payment_authorized,
+            order_rejected,
+        )
+        order_cancelled = self.order.create_order_cancelled_after_restaurant_rejection(
+            order_created,
+            order_rejected,
+            payment_voided,
+        )
+        return (
+            order_created,
+            payment_initiated,
+            payment_authorized,
+            fulfillment_requested,
+            order_rejected,
+            payment_voided,
+            order_cancelled,
+        )

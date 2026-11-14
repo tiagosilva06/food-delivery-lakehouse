@@ -15,6 +15,7 @@ from food_delivery_lakehouse.simulator.identifiers import SequenceIdGenerator
 _ORDER_CREATED = "com.fooddelivery.order.created.v1"
 _PAYMENT_INITIATED = "com.fooddelivery.payment.initiated.v1"
 _PAYMENT_AUTHORIZED = "com.fooddelivery.payment.authorized.v1"
+_ORDER_REJECTED = "com.fooddelivery.fulfillment.order-rejected-by-restaurant.v1"
 
 
 def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
@@ -46,6 +47,7 @@ class PaymentEventGenerator:
         default_factory=lambda: SequenceIdGenerator("authorization")
     )
     capture_ids: SequenceIdGenerator = field(default_factory=lambda: SequenceIdGenerator("capture"))
+    void_ids: SequenceIdGenerator = field(default_factory=lambda: SequenceIdGenerator("void"))
 
     def create_payment_initiated(self, order_created: SimulatedEvent) -> SimulatedEvent:
         """Start a card payment using the order total and currency."""
@@ -92,6 +94,65 @@ class PaymentEventGenerator:
             causation_id=payment_initiated.event_id,
             aggregate_id=payment_initiated.aggregate_id,
             aggregate_version=payment_initiated.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_payment_authorization_failed(
+        self,
+        payment_initiated: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Reject an initiated payment before any authorization is created."""
+        _require_event_type(payment_initiated, _PAYMENT_INITIATED)
+        self._advance_clock(500, 2_500)
+        failure_code = self.random_stream.choice(
+            (
+                "INSUFFICIENT_FUNDS",
+                "CARD_DECLINED",
+                "EXPIRED_CARD",
+                "SUSPECTED_FRAUD",
+                "PROVIDER_UNAVAILABLE",
+            )
+        )
+        data: JsonObject = {
+            "failure_code": failure_code,
+            "retryable": failure_code == "PROVIDER_UNAVAILABLE",
+        }
+        return self.event_factory.create(
+            domain="payment",
+            event_name="authorization-failed",
+            schema_name="payment-authorization-failed",
+            order_id=payment_initiated.order_id,
+            causation_id=payment_initiated.event_id,
+            aggregate_id=payment_initiated.aggregate_id,
+            aggregate_version=payment_initiated.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_payment_authorization_voided(
+        self,
+        payment_authorized: SimulatedEvent,
+        order_rejected: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Void an authorization when the restaurant rejects the order."""
+        _require_event_type(payment_authorized, _PAYMENT_AUTHORIZED)
+        _require_event_type(order_rejected, _ORDER_REJECTED)
+        if payment_authorized.order_id != order_rejected.order_id:
+            msg = "payment and restaurant rejection must belong to the same order"
+            raise ValueError(msg)
+
+        self._advance_clock(100, 500)
+        data: JsonObject = {
+            "provider_void_id": self.void_ids.next_id(),
+            "reason_code": "RESTAURANT_REJECTED",
+        }
+        return self.event_factory.create(
+            domain="payment",
+            event_name="authorization-voided",
+            schema_name="payment-authorization-voided",
+            order_id=payment_authorized.order_id,
+            causation_id=order_rejected.event_id,
+            aggregate_id=payment_authorized.aggregate_id,
+            aggregate_version=payment_authorized.aggregate_version + 1,
             data=data,
         )
 

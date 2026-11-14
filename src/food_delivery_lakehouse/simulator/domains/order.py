@@ -17,6 +17,9 @@ _PAYMENT_CAPTURED = "com.fooddelivery.payment.captured.v1"
 _ORDER_ACCEPTED = "com.fooddelivery.fulfillment.order-accepted-by-restaurant.v1"
 _ORDER_CONFIRMED = "com.fooddelivery.order.confirmed.v1"
 _ORDER_DELIVERED = "com.fooddelivery.delivery.order-delivered.v1"
+_PAYMENT_AUTHORIZATION_FAILED = "com.fooddelivery.payment.authorization-failed.v1"
+_ORDER_REJECTED = "com.fooddelivery.fulfillment.order-rejected-by-restaurant.v1"
+_PAYMENT_AUTHORIZATION_VOIDED = "com.fooddelivery.payment.authorization-voided.v1"
 
 
 def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
@@ -165,6 +168,64 @@ class OrderEventGenerator:
             aggregate_id=order_created.aggregate_id,
             aggregate_version=order_created.aggregate_version + 1,
             data=data,
+        )
+
+    def create_order_failed_from_payment(
+        self,
+        order_created: SimulatedEvent,
+        payment_failed: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Fail an order whose payment could not be authorized."""
+        _require_event_type(order_created, _ORDER_CREATED)
+        _require_event_type(payment_failed, _PAYMENT_AUTHORIZATION_FAILED)
+        if order_created.order_id != payment_failed.order_id:
+            msg = "order and payment failure must belong to the same order"
+            raise ValueError(msg)
+
+        failure_code = payment_failed.data.get("failure_code")
+        if not isinstance(failure_code, str):
+            msg = "failure_code must be str"
+            raise ValueError(msg)
+        self.event_factory.clock.advance(
+            timedelta(milliseconds=self.random_stream.randint(100, 500))
+        )
+        return self.event_factory.create(
+            domain="order",
+            event_name="failed",
+            schema_name="order-failed",
+            order_id=order_created.order_id,
+            causation_id=payment_failed.event_id,
+            aggregate_id=order_created.aggregate_id,
+            aggregate_version=order_created.aggregate_version + 1,
+            data={"failure_stage": "PAYMENT", "failure_code": failure_code},
+        )
+
+    def create_order_cancelled_after_restaurant_rejection(
+        self,
+        order_created: SimulatedEvent,
+        order_rejected: SimulatedEvent,
+        payment_voided: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Cancel an order after rejection and authorization reversal."""
+        _require_event_type(order_created, _ORDER_CREATED)
+        _require_event_type(order_rejected, _ORDER_REJECTED)
+        _require_event_type(payment_voided, _PAYMENT_AUTHORIZATION_VOIDED)
+        if len({order_created.order_id, order_rejected.order_id, payment_voided.order_id}) != 1:
+            msg = "order, restaurant rejection, and void must belong to the same order"
+            raise ValueError(msg)
+
+        self.event_factory.clock.advance(
+            timedelta(milliseconds=self.random_stream.randint(100, 500))
+        )
+        return self.event_factory.create(
+            domain="order",
+            event_name="cancelled",
+            schema_name="order-cancelled",
+            order_id=order_created.order_id,
+            causation_id=payment_voided.event_id,
+            aggregate_id=order_created.aggregate_id,
+            aggregate_version=order_created.aggregate_version + 1,
+            data={"requested_by": "RESTAURANT", "reason_code": "RESTAURANT_REJECTED"},
         )
 
     def create_order_completed(

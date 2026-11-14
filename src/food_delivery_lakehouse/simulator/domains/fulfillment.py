@@ -106,6 +106,37 @@ class FulfillmentEventGenerator:
             data=data,
         )
 
+    def create_order_rejected(
+        self,
+        fulfillment_requested: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Reject a fulfillment request on behalf of the restaurant."""
+        if fulfillment_requested.event_type != _FULFILLMENT_REQUESTED:
+            msg = f"expected {_FULFILLMENT_REQUESTED}, got {fulfillment_requested.event_type}"
+            raise ValueError(msg)
+
+        self.event_factory.clock.advance(timedelta(seconds=self.random_stream.randint(5, 60)))
+        data: JsonObject = {
+            "reason_code": self.random_stream.choice(
+                (
+                    "RESTAURANT_BUSY",
+                    "ITEM_UNAVAILABLE",
+                    "RESTAURANT_CLOSED",
+                    "OPERATIONAL_ISSUE",
+                )
+            )
+        }
+        return self.event_factory.create(
+            domain="fulfillment",
+            event_name="order-rejected-by-restaurant",
+            schema_name="order-rejected-by-restaurant",
+            order_id=fulfillment_requested.order_id,
+            causation_id=fulfillment_requested.event_id,
+            aggregate_id=fulfillment_requested.aggregate_id,
+            aggregate_version=fulfillment_requested.aggregate_version + 1,
+            data=data,
+        )
+
     def create_preparation_started(
         self,
         order_accepted: SimulatedEvent,
