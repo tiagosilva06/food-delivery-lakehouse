@@ -1,5 +1,6 @@
 """Domain-specific event generators for the simulator."""
 
+from food_delivery_lakehouse.simulator.domains.delivery import DeliveryEventGenerator
 from food_delivery_lakehouse.simulator.domains.fulfillment import FulfillmentEventGenerator
 from food_delivery_lakehouse.simulator.domains.order import (
     DeliveryLocation,
@@ -9,6 +10,7 @@ from food_delivery_lakehouse.simulator.domains.order import (
 from food_delivery_lakehouse.simulator.domains.payment import PaymentEventGenerator
 
 __all__ = [
+    "DeliveryEventGenerator",
     "DeliveryLocation",
     "FulfillmentEventGenerator",
     "OrderEventGenerator",
