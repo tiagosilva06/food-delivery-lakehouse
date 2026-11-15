@@ -118,3 +118,108 @@ class OrderJourneySimulator:
             payment_voided,
             order_cancelled,
         )
+
+    def generate_courier_timeout_order(self) -> tuple[SimulatedEvent, ...]:
+        """Generate a captured order that cannot obtain a courier."""
+        prefix = self._generate_until_delivery_requested()
+        order_confirmed = prefix[6]
+        payment_captured = prefix[5]
+        delivery_requested = prefix[-1]
+        courier_search = self.delivery.create_courier_search_started(delivery_requested)
+        assignment_timed_out = self.delivery.create_courier_assignment_timed_out(courier_search)
+        delivery_cancelled = self.delivery.create_delivery_cancelled_after_timeout(
+            assignment_timed_out
+        )
+        refund_requested = self.payment.create_payment_refund_requested(
+            payment_captured,
+            delivery_cancelled,
+        )
+        payment_refunded = self.payment.create_payment_refunded(refund_requested)
+        order_failed = self.order.create_order_failed_from_delivery(
+            order_confirmed,
+            delivery_cancelled,
+            payment_refunded,
+        )
+        return prefix + (
+            courier_search,
+            assignment_timed_out,
+            delivery_cancelled,
+            refund_requested,
+            payment_refunded,
+            order_failed,
+        )
+
+    def generate_delivery_failure_order(self) -> tuple[SimulatedEvent, ...]:
+        """Generate a captured order whose delivery fails in transit."""
+        prefix = self._generate_until_delivery_requested()
+        order_ready = prefix[8]
+        order_confirmed = prefix[6]
+        payment_captured = prefix[5]
+        delivery_requested = prefix[-1]
+        courier_search = self.delivery.create_courier_search_started(delivery_requested)
+        courier_assigned = self.delivery.create_courier_assigned(courier_search)
+        courier_arrived = self.delivery.create_courier_arrived_at_restaurant(courier_assigned)
+        order_handed = self.fulfillment.create_order_handed_to_courier(
+            order_ready,
+            courier_arrived,
+        )
+        order_picked_up = self.delivery.create_order_picked_up(courier_arrived, order_handed)
+        delivery_started = self.delivery.create_delivery_started(order_picked_up)
+        delivery_failed = self.delivery.create_delivery_failed(delivery_started)
+        refund_requested = self.payment.create_payment_refund_requested(
+            payment_captured,
+            delivery_failed,
+        )
+        payment_refunded = self.payment.create_payment_refunded(refund_requested)
+        order_failed = self.order.create_order_failed_from_delivery(
+            order_confirmed,
+            delivery_failed,
+            payment_refunded,
+        )
+        return prefix + (
+            courier_search,
+            courier_assigned,
+            courier_arrived,
+            order_handed,
+            order_picked_up,
+            delivery_started,
+            delivery_failed,
+            refund_requested,
+            payment_refunded,
+            order_failed,
+        )
+
+    def _generate_until_delivery_requested(self) -> tuple[SimulatedEvent, ...]:
+        """Build the shared successful prefix through DeliveryRequested."""
+        order_created = self.order.create_order_created()
+        payment_initiated = self.payment.create_payment_initiated(order_created)
+        payment_authorized = self.payment.create_payment_authorized(payment_initiated)
+        fulfillment_requested = self.fulfillment.create_fulfillment_requested(
+            order_created,
+            payment_authorized,
+        )
+        order_accepted = self.fulfillment.create_order_accepted(fulfillment_requested)
+        payment_captured = self.payment.create_payment_captured(payment_authorized)
+        order_confirmed = self.order.create_order_confirmed(
+            order_created,
+            payment_captured,
+            order_accepted,
+        )
+        preparation_started = self.fulfillment.create_preparation_started(
+            order_accepted,
+            order_confirmed,
+        )
+        order_ready = self.fulfillment.create_order_ready_for_pickup(preparation_started)
+        delivery_requested = self.delivery.create_delivery_requested(order_created, order_ready)
+        return (
+            order_created,
+            payment_initiated,
+            payment_authorized,
+            fulfillment_requested,
+            order_accepted,
+            payment_captured,
+            order_confirmed,
+            preparation_started,
+            order_ready,
+            delivery_requested,
+        )

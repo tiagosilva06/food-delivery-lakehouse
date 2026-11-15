@@ -16,6 +16,10 @@ _ORDER_CREATED = "com.fooddelivery.order.created.v1"
 _PAYMENT_INITIATED = "com.fooddelivery.payment.initiated.v1"
 _PAYMENT_AUTHORIZED = "com.fooddelivery.payment.authorized.v1"
 _ORDER_REJECTED = "com.fooddelivery.fulfillment.order-rejected-by-restaurant.v1"
+_PAYMENT_CAPTURED = "com.fooddelivery.payment.captured.v1"
+_DELIVERY_CANCELLED = "com.fooddelivery.delivery.cancelled.v1"
+_DELIVERY_FAILED = "com.fooddelivery.delivery.failed.v1"
+_REFUND_REQUESTED = "com.fooddelivery.payment.refund-requested.v1"
 
 
 def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
@@ -48,6 +52,10 @@ class PaymentEventGenerator:
     )
     capture_ids: SequenceIdGenerator = field(default_factory=lambda: SequenceIdGenerator("capture"))
     void_ids: SequenceIdGenerator = field(default_factory=lambda: SequenceIdGenerator("void"))
+    refund_ids: SequenceIdGenerator = field(default_factory=lambda: SequenceIdGenerator("refund"))
+    provider_refund_ids: SequenceIdGenerator = field(
+        default_factory=lambda: SequenceIdGenerator("provider-refund")
+    )
 
     def create_payment_initiated(self, order_created: SimulatedEvent) -> SimulatedEvent:
         """Start a card payment using the order total and currency."""
@@ -175,6 +183,72 @@ class PaymentEventGenerator:
             causation_id=payment_authorized.event_id,
             aggregate_id=payment_authorized.aggregate_id,
             aggregate_version=payment_authorized.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_payment_refund_requested(
+        self,
+        payment_captured: SimulatedEvent,
+        delivery_terminal: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Request a full refund after an unsuccessful delivery."""
+        _require_event_type(payment_captured, _PAYMENT_CAPTURED)
+        if delivery_terminal.event_type not in {_DELIVERY_CANCELLED, _DELIVERY_FAILED}:
+            msg = f"unsupported refund trigger: {delivery_terminal.event_type}"
+            raise ValueError(msg)
+        if payment_captured.order_id != delivery_terminal.order_id:
+            msg = "payment and delivery failure must belong to the same order"
+            raise ValueError(msg)
+
+        amount_minor = _require_data_value(payment_captured, "amount_minor", int)
+        currency = _require_data_value(payment_captured, "currency", str)
+        self._advance_clock(100, 500)
+        reason_code = (
+            "DELIVERY_FAILED"
+            if delivery_terminal.event_type == _DELIVERY_FAILED
+            else "ORDER_CANCELLED"
+        )
+        data: JsonObject = {
+            "refund_id": self.refund_ids.next_id(),
+            "amount_minor": amount_minor,
+            "currency": currency,
+            "reason_code": reason_code,
+        }
+        return self.event_factory.create(
+            domain="payment",
+            event_name="refund-requested",
+            schema_name="payment-refund-requested",
+            order_id=payment_captured.order_id,
+            causation_id=delivery_terminal.event_id,
+            aggregate_id=payment_captured.aggregate_id,
+            aggregate_version=payment_captured.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_payment_refunded(
+        self,
+        refund_requested: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Complete a requested full payment refund."""
+        _require_event_type(refund_requested, _REFUND_REQUESTED)
+        refund_id = _require_data_value(refund_requested, "refund_id", str)
+        amount_minor = _require_data_value(refund_requested, "amount_minor", int)
+        currency = _require_data_value(refund_requested, "currency", str)
+        self._advance_clock(500, 2_000)
+        data: JsonObject = {
+            "refund_id": refund_id,
+            "provider_refund_id": self.provider_refund_ids.next_id(),
+            "amount_minor": amount_minor,
+            "currency": currency,
+        }
+        return self.event_factory.create(
+            domain="payment",
+            event_name="refunded",
+            schema_name="payment-refunded",
+            order_id=refund_requested.order_id,
+            causation_id=refund_requested.event_id,
+            aggregate_id=refund_requested.aggregate_id,
+            aggregate_version=refund_requested.aggregate_version + 1,
             data=data,
         )
 

@@ -20,6 +20,7 @@ _COURIER_ARRIVED = "com.fooddelivery.delivery.courier-arrived-at-restaurant.v1"
 _ORDER_HANDED_TO_COURIER = "com.fooddelivery.fulfillment.order-handed-to-courier.v1"
 _ORDER_PICKED_UP = "com.fooddelivery.delivery.order-picked-up.v1"
 _DELIVERY_STARTED = "com.fooddelivery.delivery.started.v1"
+_DELIVERY_CANCELLED = "com.fooddelivery.delivery.cancelled.v1"
 
 
 def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
@@ -159,6 +160,63 @@ class DeliveryEventGenerator:
             aggregate_id=courier_search_started.aggregate_id,
             aggregate_version=courier_search_started.aggregate_version + 1,
             data=data,
+        )
+
+    def create_courier_assignment_timed_out(
+        self,
+        courier_search_started: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Expire a courier search at its assignment deadline."""
+        _require_event_type(courier_search_started, _COURIER_SEARCH_STARTED)
+        assignment_attempt_id = courier_search_started.data.get("assignment_attempt_id")
+        if not isinstance(assignment_attempt_id, str):
+            msg = "assignment_attempt_id must be str"
+            raise ValueError(msg)
+
+        assignment_deadline = _parse_timestamp(
+            courier_search_started.data.get("assignment_deadline_at"),
+            "assignment_deadline_at",
+        )
+        remaining_time = assignment_deadline - self.event_factory.clock.now()
+        if remaining_time < timedelta(0):
+            msg = "assignment_deadline_at cannot be before the current virtual time"
+            raise ValueError(msg)
+        self.event_factory.clock.advance(remaining_time)
+        return self.event_factory.create(
+            domain="delivery",
+            event_name="courier-assignment-timed-out",
+            schema_name="courier-assignment-timed-out",
+            order_id=courier_search_started.order_id,
+            causation_id=courier_search_started.event_id,
+            aggregate_id=courier_search_started.aggregate_id,
+            aggregate_version=courier_search_started.aggregate_version + 1,
+            data={
+                "assignment_attempt_id": assignment_attempt_id,
+                "timeout_seconds": 90,
+            },
+        )
+
+    def create_delivery_cancelled_after_timeout(
+        self,
+        assignment_timed_out: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Cancel a delivery that could not obtain a courier."""
+        _require_event_type(
+            assignment_timed_out,
+            "com.fooddelivery.delivery.courier-assignment-timed-out.v1",
+        )
+        self.event_factory.clock.advance(
+            timedelta(milliseconds=self.random_stream.randint(100, 500))
+        )
+        return self.event_factory.create(
+            domain="delivery",
+            event_name="cancelled",
+            schema_name="delivery-cancelled",
+            order_id=assignment_timed_out.order_id,
+            causation_id=assignment_timed_out.event_id,
+            aggregate_id=assignment_timed_out.aggregate_id,
+            aggregate_version=assignment_timed_out.aggregate_version + 1,
+            data={"reason_code": "SYSTEM_ERROR"},
         )
 
     def create_courier_arrived_at_restaurant(
@@ -320,6 +378,46 @@ class DeliveryEventGenerator:
             domain="delivery",
             event_name="order-delivered",
             schema_name="order-delivered",
+            order_id=delivery_started.order_id,
+            causation_id=delivery_started.event_id,
+            aggregate_id=delivery_started.aggregate_id,
+            aggregate_version=delivery_started.aggregate_version + 1,
+            data=data,
+        )
+
+    def create_delivery_failed(
+        self,
+        delivery_started: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Fail an in-transit delivery after pickup."""
+        _require_event_type(delivery_started, _DELIVERY_STARTED)
+        assignment_attempt_id = delivery_started.data.get("assignment_attempt_id")
+        courier_id = delivery_started.data.get("courier_id")
+        if not isinstance(assignment_attempt_id, str):
+            msg = "assignment_attempt_id must be str"
+            raise ValueError(msg)
+        if not isinstance(courier_id, str):
+            msg = "courier_id must be str"
+            raise ValueError(msg)
+
+        self.event_factory.clock.advance(timedelta(minutes=self.random_stream.randint(1, 8)))
+        data: JsonObject = {
+            "assignment_attempt_id": assignment_attempt_id,
+            "courier_id": courier_id,
+            "failure_code": self.random_stream.choice(
+                (
+                    "CUSTOMER_UNAVAILABLE",
+                    "VEHICLE_BREAKDOWN",
+                    "ACCIDENT",
+                    "ADDRESS_NOT_FOUND",
+                    "PACKAGE_DAMAGED",
+                )
+            ),
+        }
+        return self.event_factory.create(
+            domain="delivery",
+            event_name="failed",
+            schema_name="delivery-failed",
             order_id=delivery_started.order_id,
             causation_id=delivery_started.event_id,
             aggregate_id=delivery_started.aggregate_id,

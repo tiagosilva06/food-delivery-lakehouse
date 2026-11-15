@@ -20,6 +20,9 @@ _ORDER_DELIVERED = "com.fooddelivery.delivery.order-delivered.v1"
 _PAYMENT_AUTHORIZATION_FAILED = "com.fooddelivery.payment.authorization-failed.v1"
 _ORDER_REJECTED = "com.fooddelivery.fulfillment.order-rejected-by-restaurant.v1"
 _PAYMENT_AUTHORIZATION_VOIDED = "com.fooddelivery.payment.authorization-voided.v1"
+_DELIVERY_CANCELLED = "com.fooddelivery.delivery.cancelled.v1"
+_DELIVERY_FAILED = "com.fooddelivery.delivery.failed.v1"
+_PAYMENT_REFUNDED = "com.fooddelivery.payment.refunded.v1"
 
 
 def _require_event_type(event: SimulatedEvent, expected_type: str) -> None:
@@ -253,6 +256,48 @@ class OrderEventGenerator:
             aggregate_id=order_confirmed.aggregate_id,
             aggregate_version=order_confirmed.aggregate_version + 1,
             data=data,
+        )
+
+    def create_order_failed_from_delivery(
+        self,
+        order_confirmed: SimulatedEvent,
+        delivery_terminal: SimulatedEvent,
+        payment_refunded: SimulatedEvent,
+    ) -> SimulatedEvent:
+        """Fail a confirmed order after its captured payment is refunded."""
+        _require_event_type(order_confirmed, _ORDER_CONFIRMED)
+        if delivery_terminal.event_type not in {_DELIVERY_CANCELLED, _DELIVERY_FAILED}:
+            msg = f"unsupported delivery terminal event: {delivery_terminal.event_type}"
+            raise ValueError(msg)
+        _require_event_type(payment_refunded, _PAYMENT_REFUNDED)
+        if (
+            len(
+                {
+                    order_confirmed.order_id,
+                    delivery_terminal.order_id,
+                    payment_refunded.order_id,
+                }
+            )
+            != 1
+        ):
+            msg = "order, delivery failure, and refund must belong to the same order"
+            raise ValueError(msg)
+
+        failure_code = delivery_terminal.data.get("failure_code")
+        if not isinstance(failure_code, str):
+            failure_code = "COURIER_ASSIGNMENT_TIMEOUT"
+        self.event_factory.clock.advance(
+            timedelta(milliseconds=self.random_stream.randint(100, 500))
+        )
+        return self.event_factory.create(
+            domain="order",
+            event_name="failed",
+            schema_name="order-failed",
+            order_id=order_confirmed.order_id,
+            causation_id=payment_refunded.event_id,
+            aggregate_id=order_confirmed.aggregate_id,
+            aggregate_version=order_confirmed.aggregate_version + 1,
+            data={"failure_stage": "DELIVERY", "failure_code": failure_code},
         )
 
     def _create_items(self) -> list[OrderItem]:
