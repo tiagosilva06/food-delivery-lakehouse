@@ -1,5 +1,10 @@
 """Deterministic food delivery event simulator."""
 
+from food_delivery_lakehouse.simulator.anomalies import (
+    AnomalyRates,
+    EmissionRecord,
+    EventAnomalyInjector,
+)
 from food_delivery_lakehouse.simulator.clock import VirtualClock
 from food_delivery_lakehouse.simulator.domains.delivery import DeliveryEventGenerator
 from food_delivery_lakehouse.simulator.domains.fulfillment import FulfillmentEventGenerator
@@ -15,9 +20,12 @@ from food_delivery_lakehouse.simulator.randomness import RandomStreams
 from food_delivery_lakehouse.simulator.settings import SimulationSettings
 
 __all__ = [
+    "AnomalyRates",
     "DeterministicUuid7Generator",
     "CloudEventFactory",
     "DeliveryEventGenerator",
+    "EmissionRecord",
+    "EventAnomalyInjector",
     "FulfillmentEventGenerator",
     "OrderEventGenerator",
     "OrderJourneySimulator",
