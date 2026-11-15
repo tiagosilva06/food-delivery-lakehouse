@@ -8,6 +8,13 @@ order_count = 1000000
 [throughput]
 target_peak_events_per_second = 1500
 
+[scenarios]
+successful_order_rate = 0.90
+payment_failure_rate = 0.03
+restaurant_rejection_rate = 0.03
+courier_timeout_rate = 0.02
+delivery_failure_rate = 0.02
+
 [anomalies]
 duplicate_event_rate = 0.01
 late_event_rate = 0.02

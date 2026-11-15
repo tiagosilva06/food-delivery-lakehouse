@@ -38,3 +38,11 @@ def test_invalid_anomaly_rate_is_rejected() -> None:
 
     with pytest.raises(ValueError, match="between 0 and 1"):
         replace(settings, duplicate_event_rate=1.01)
+
+
+def test_scenario_rates_must_sum_to_one() -> None:
+    """Require a complete probability distribution for journey selection."""
+    settings = SimulationSettings.from_toml(PROFILE_DIRECTORY / "dev.toml")
+
+    with pytest.raises(ValueError, match="sum to 1"):
+        replace(settings, successful_order_rate=0.80)

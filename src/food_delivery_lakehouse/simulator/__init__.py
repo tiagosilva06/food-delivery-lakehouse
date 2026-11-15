@@ -17,6 +17,7 @@ from food_delivery_lakehouse.simulator.identifiers import (
 )
 from food_delivery_lakehouse.simulator.journey import OrderJourneySimulator
 from food_delivery_lakehouse.simulator.randomness import RandomStreams
+from food_delivery_lakehouse.simulator.runner import SimulationRunner
 from food_delivery_lakehouse.simulator.settings import SimulationSettings
 
 __all__ = [
@@ -33,6 +34,7 @@ __all__ = [
     "RandomStreams",
     "SequenceIdGenerator",
     "SimulationSettings",
+    "SimulationRunner",
     "SimulatedEvent",
     "VirtualClock",
 ]

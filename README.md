@@ -6,7 +6,7 @@ O projeto combinará processamento streaming e batch para acompanhar a jornada d
 
 No caminho streaming, Kafka e Spark Structured Streaming conduzirão os eventos de Bronze/Raw até a Silver operacional, consultada pelo Grafana via Trino para acompanhar a operação em tempo quase real. No caminho batch, arquivos externos passarão por Landing, Bronze e Silver antes de o dbt construir Gold e Serving, consumidos analiticamente pelo Superset. Airflow coordenará o batch e as operações finitas; OpenMetadata concentrará catálogo, linhagem e governança.
 
-> Status: fundação do projeto e contratos de eventos concluídos; simulador determinístico em construção.
+> Status: fundação, contratos de eventos e simulador determinístico concluídos.
 
 ## Objetivo
 
@@ -58,7 +58,7 @@ Cada componente local reproduzirá uma responsabilidade que poderia ser assumida
 
 - [x] Criar a estrutura inicial do repositório e os padrões de desenvolvimento
 - [x] Definir os contratos CloudEvents e JSON Schema
-- [ ] Construir o simulador determinístico dos domínios
+- [x] Construir o simulador determinístico dos domínios
 - [ ] Configurar Kafka e Apicurio Registry
 - [ ] Configurar o armazenamento S3 local, Delta Lake e Hive Metastore
 - [ ] Implementar a ingestão streaming da camada Bronze
